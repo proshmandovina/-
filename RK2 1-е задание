@@ -1,0 +1,88 @@
+from dataclasses import dataclass
+from typing import List, Dict
+from collections import defaultdict
+
+@dataclass
+class CD:
+    cd_id: int
+    name: str
+    series: str
+    library_id: int  # Связь один-ко-многим
+
+@dataclass
+class Library:
+    library_id: int
+    name: str
+
+@dataclass
+class CDLibraryLink:
+    cd_id: int
+    library_id: int  # Связь многие-ко-многим
+
+# Функция 1: Получение CD-дисков, название которых заканчивается на определённую букву
+def get_cds_ending_with(cds: List[CD], libraries: List[Library], ending: str) -> List[Dict[str, str]]:
+    result = []
+    for cd in cds:
+        if cd.name.endswith(ending):
+            library_name = next((lib.name for lib in libraries if lib.library_id == cd.library_id), "неизвестен")
+            result.append({"cd_name": cd.name, "library_name": library_name})
+    return result
+
+# Функция 2: Подсчёт средней длины названий CD-дисков в библиотеках
+def get_avg_cd_name_length(cds: List[CD], libraries: List[Library]) -> List[Dict[str, float]]:
+    library_lengths = defaultdict(list)
+    for cd in cds:
+        library_lengths[cd.library_id].append(len(cd.name))
+
+    avg_library_lengths = []
+    for library_id, lengths in library_lengths.items():
+        avg_length = sum(lengths) / len(lengths)
+        library_name = next((lib.name for lib in libraries if lib.library_id == library_id), "Unknown")
+        avg_library_lengths.append({"library_name": library_name, "avg_length": avg_length})
+    
+    avg_library_lengths.sort(key=lambda x: x["avg_length"], reverse=True)  # Сортировка по средней длине
+    return avg_library_lengths
+
+# Функция 3: Получение библиотек с названием на определённую букву и связанных CD-дисков
+def get_libraries_with_cds_starting_with(libraries: List[Library], cd_library_links: List[CDLibraryLink], cds: List[CD], starting: str) -> List[Dict[str, List[str]]]:
+    result = []
+    for library in libraries:
+        if library.name.startswith(starting):
+            linked_cd_ids = [link.cd_id for link in cd_library_links if link.library_id == library.library_id]
+            linked_cds = [cd.name for cd in cds if cd.cd_id in linked_cd_ids]
+            result.append({"library_name": library.name, "cds": linked_cds})
+    return result
+
+# Тестовые данные
+libraries = [
+    Library(library_id=1, name="Альфа"),
+    Library(library_id=2, name="Вегас"),
+    Library(library_id=3, name="Самса"),
+]
+
+cds = [
+    CD(cd_id=1, name="популярная песня", series="акустика", library_id=1),
+    CD(cd_id=2, name="любимая классика", series="оркестр", library_id=2),
+    CD(cd_id=3, name="поп хиты", series="чарты", library_id=1),
+    CD(cd_id=4, name="электрические мечты", series="синх", library_id=3),
+    CD(cd_id=5, name="чиллибас", series="чиллик", library_id=3),
+]
+
+cd_library_links = [
+    CDLibraryLink(cd_id=1, library_id=1),
+    CDLibraryLink(cd_id=2, library_id=2),
+    CDLibraryLink(cd_id=3, library_id=1),
+    CDLibraryLink(cd_id=4, library_id=3),
+    CDLibraryLink(cd_id=5, library_id=3),
+]
+
+if __name__ == "__main__":
+    # Пример вызова функций
+    print("1. CD-диски, название которых заканчивается на 'ы':")
+    print(get_cds_ending_with(cds, libraries, "ы"))
+
+    print("\n2. Средняя длина названий CD-дисков по библиотекам:")
+    print(get_avg_cd_name_length(cds, libraries))
+
+    print("\n3. Библиотеки с названием на 'А' и CD-дисками:")
+    print(get_libraries_with_cds_starting_with(libraries, cd_library_links, cds, "А"))
