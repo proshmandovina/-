@@ -1,0 +1,49 @@
+import unittest
+from main_program import (
+    get_cds_ending_with,
+    get_avg_cd_name_length,
+    get_libraries_with_cds_starting_with,
+    CD,
+    Library,
+    CDLibraryLink,
+)
+
+class TestCDLibraryFunctions(unittest.TestCase):
+    def setUp(self):
+        self.libraries = [
+            Library(library_id=1, name="Альфа"),
+            Library(library_id=2, name="Вегас"),
+            Library(library_id=3, name="Самса"),
+        ]
+        self.cds = [
+            CD(cd_id=1, name="популярная песня", series="акустика", library_id=1),
+            CD(cd_id=2, name="любимая классика", series="оркестр", library_id=2),
+            CD(cd_id=3, name="поп хиты", series="чарты", library_id=1),
+            CD(cd_id=4, name="электрические мечты", series="синх", library_id=3),
+            CD(cd_id=5, name="чиллибас", series="чиллик", library_id=3),
+        ]
+        self.cd_library_links = [
+            CDLibraryLink(cd_id=1, library_id=1),
+            CDLibraryLink(cd_id=2, library_id=2),
+            CDLibraryLink(cd_id=3, library_id=1),
+            CDLibraryLink(cd_id=4, library_id=3),
+            CDLibraryLink(cd_id=5, library_id=3),
+        ]
+
+    def test_get_cds_ending_with(self):
+        result = get_cds_ending_with(self.cds, self.libraries, "ы")
+        self.assertEqual(len(result), 0)
+
+    def test_get_avg_cd_name_length(self):
+        result = get_avg_cd_name_length(self.cds, self.libraries)
+        self.assertEqual(len(result), 3)
+        self.assertAlmostEqual(result[0]["avg_length"], 16.5, places=1)
+
+    def test_get_libraries_with_cds_starting_with(self):
+        result = get_libraries_with_cds_starting_with(self.libraries, self.cd_library_links, self.cds, "А")
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["library_name"], "Альфа")
+        self.assertEqual(len(result[0]["cds"]), 2)
+
+if __name__ == "__main__":
+    unittest.main()
